@@ -5,7 +5,7 @@ import pandas as pd
 import re
 
 st.title("📋 Medicare Plan Comparison Tool")
-st.write("Upload Summary of Benefits PDFs for a full side-by-side comparison by feature.")
+st.write("Upload Summary of Benefits PDFs for clean, card-specific comparison.")
 
 uploaded_files = st.file_uploader("Upload PDF files", type="pdf", accept_multiple_files=True)
 
@@ -23,7 +23,7 @@ keywords = {
     "MRI": r"MRI.*?\$\d+",
     "X-ray": r"X-ray.*?\$\d+",
     "Flex card": r"Flex (Benefit|Card).*?\$\d+.*?(month|quarter)?",
-    "OTC": r"OTC.*?\$\d+.*?(month|quarter|3 months)",
+    "OTC": r"(OTC (Card|Allowance|Benefit|Healthy Today).*?\$\d+(\.\d{2})?.*?(month|quarter|year)?)",
     "Giveback": r"Part B.*?\$\d+\.\d{2}"
 }
 
@@ -44,7 +44,6 @@ if uploaded_files:
             results[plan_name] = plan_info
 
     df = pd.DataFrame(results)
-    st.subheader("📊 Full Feature Comparison")
+    st.subheader("📊 Medicare Plan Comparison by Feature")
     st.dataframe(df)
-
-    st.download_button("Download as CSV", df.to_csv().encode("utf-8"), "expanded_comparison.csv", "text/csv")
+    st.download_button("Download as CSV", df.to_csv().encode("utf-8"), "fixed_comparison.csv", "text/csv")
