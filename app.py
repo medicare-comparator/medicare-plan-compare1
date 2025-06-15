@@ -4,8 +4,8 @@ import pdfplumber
 import pandas as pd
 import re
 
-st.title("💵 Medicare Plan Cost Comparison")
-st.write("Upload Summary of Benefits PDFs to compare only dollar ($) values side by side.")
+st.title("💵 Medicare Plan: All Allowances & Cost Comparison")
+st.write("Upload Summary of Benefits PDFs to capture all $ values including any 'allowance', 'food card', or 'assistance'.")
 
 uploaded_files = st.file_uploader("Upload PDF files", type="pdf", accept_multiple_files=True)
 
@@ -23,8 +23,9 @@ keywords = {
     "MRI": r"MRI.*?\$\d+",
     "X-ray": r"X-ray.*?\$\d+",
     "Flex card": r"Flex (Benefit|Card).*?\$\d+.*?(month|quarter)?",
-    "OTC": r"(OTC (Card|Allowance|Benefit|Healthy Today).*?\$\d+(\.\d{2})?.*?(month|quarter|year)?)",
-    "Giveback": r"Part B.*?\$\d+\.\d{2}"
+    "OTC Allowance": r"(Over[-\s]?the[-\s]?Counter (Card|Allowance|Benefit|Healthy Today)).*?\$\d+(\.\d{2})?.*?(month|quarter|year)?",
+    "Living Needs Allowance": r"(Living Needs Allowance|Essential Needs|Utility|Home Support).*?\$\d+(\.\d{2})?",
+    "Food/Utility Assistance": r"(food card|assistance|utility|groceries|support).*?\$\d+(\.\d{2})?"
 }
 
 def extract_info(text):
@@ -47,8 +48,8 @@ if uploaded_files:
 
     if results:
         df = pd.DataFrame(results)
-        st.subheader("💵 Dollar-Based Plan Comparison")
+        st.subheader("💵 Comparison of All $ Allowances and Costs")
         st.dataframe(df)
-        st.download_button("Download $ Comparison", df.to_csv().encode("utf-8"), "dollar_comparison.csv", "text/csv")
+        st.download_button("Download Full $ Table", df.to_csv().encode("utf-8"), "full_dollar_comparison.csv", "text/csv")
     else:
         st.info("No dollar ($) values were detected in the uploaded PDFs.")
