@@ -4,10 +4,10 @@ import pdfplumber
 import pandas as pd
 import re
 
-st.title("💵 Medicare Plan: Enhanced $ Comparison with All Allowances")
-st.write("This version captures all cost info and any phrase like '$350 allowance', 'benefit', or 'card'.")
+st.title("🦷 Medicare Dental & Hearing Comparison Tool")
+st.write("Includes dental implants, preventive/restorative copays, and full benefit value.")
 
-uploaded_files = st.file_uploader("Upload PDF files", type="pdf", accept_multiple_files=True)
+uploaded_files = st.file_uploader("Upload Summary of Benefits PDFs", type="pdf", accept_multiple_files=True)
 
 keywords = {
     "Monthly premium": r"Monthly Plan Premium\s+\$\d+",
@@ -16,8 +16,11 @@ keywords = {
     "Primary doctor": r"Primary care.*?\$\d+",
     "Specialist": r"Specialists?.*?\$\d+",
     "Hospital": r"(Inpatient Hospital|Hospital Coverage).+?\$\d+.+?day",
-    "Dental": r"(Dental Allowance|Preventive and Comprehensive Dental).+?\$\d+",
-    "Hearing": r"Hearing Aids?.+?\$\d+",
+    "Dental Coverage (Total Value)": r"(Comprehensive|Annual|Maximum|Dental Allowance).*?(Benefit|Coverage)?.*?\$\d+(\.\d{2})?",
+    "Dental Copay (Preventive)": r"(Preventive|Exam|Cleaning|X-rays).*?(copay)?.*?\$\d+(\.\d{2})?",
+    "Dental Copay (Restorative)": r"(Filling|Crown|Root Canal|Endodontics|Restorative).*?\$\d+(\.\d{2})?",
+    "Dental Implants": r"(Dental )?(Implants|Implant procedures).*?\$\d+(\.\d{2})?",
+    "Hearing Aids": r"(Hearing Aid(s)?|Devices|Audiology).*?(coverage|copay|allowance)?.*?\$\d+(\.\d{2})?",
     "Vision": r"(Routine Eye Exam|Eyewear).+?\$\d+",
     "Transportation": r"(Transportation|non-emergency ride).*?\$?\d+.*?(one-way|trip|rides|miles)?",
     "MRI": r"MRI.*?\$\d+",
@@ -34,7 +37,7 @@ def extract_info(text):
     for key, pattern in keywords.items():
         match = re.search(pattern, text, re.IGNORECASE | re.DOTALL)
         value = match.group(0) if match else "Not found"
-        if "$" in value:
+        if "$" in value or "implant" in value.lower():
             plan_data[key] = value
     return plan_data
 
@@ -49,8 +52,8 @@ if uploaded_files:
 
     if results:
         df = pd.DataFrame(results)
-        st.subheader("💵 Full $ Comparison with All Allowances")
+        st.subheader("🦷 Full Dental + Hearing + $ Benefit Comparison (with Implants)")
         st.dataframe(df)
-        st.download_button("Download Full $ Table", df.to_csv().encode("utf-8"), "final_dollar_comparison.csv", "text/csv")
+        st.download_button("Download Full Table", df.to_csv().encode("utf-8"), "dental_with_implants_comparison.csv", "text/csv")
     else:
-        st.info("No dollar ($) values were detected in the uploaded PDFs.")
+        st.info("No relevant data with dollar values or implant keywords detected.")
