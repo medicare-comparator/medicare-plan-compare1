@@ -4,8 +4,8 @@ import pdfplumber
 import pandas as pd
 import re
 
-st.title("📋 Medicare Plan Comparison Tool")
-st.write("Upload Summary of Benefits PDFs for clean, card-specific comparison.")
+st.title("💵 Medicare Plan Cost Comparison")
+st.write("Upload Summary of Benefits PDFs to compare only dollar ($) values side by side.")
 
 uploaded_files = st.file_uploader("Upload PDF files", type="pdf", accept_multiple_files=True)
 
@@ -31,7 +31,9 @@ def extract_info(text):
     plan_data = {}
     for key, pattern in keywords.items():
         match = re.search(pattern, text, re.IGNORECASE | re.DOTALL)
-        plan_data[key] = match.group(0) if match else "Not found"
+        value = match.group(0) if match else "Not found"
+        if "$" in value:
+            plan_data[key] = value
     return plan_data
 
 if uploaded_files:
@@ -43,7 +45,10 @@ if uploaded_files:
             plan_name = file.name.replace(".pdf", "")
             results[plan_name] = plan_info
 
-    df = pd.DataFrame(results)
-    st.subheader("📊 Medicare Plan Comparison by Feature")
-    st.dataframe(df)
-    st.download_button("Download as CSV", df.to_csv().encode("utf-8"), "fixed_comparison.csv", "text/csv")
+    if results:
+        df = pd.DataFrame(results)
+        st.subheader("💵 Dollar-Based Plan Comparison")
+        st.dataframe(df)
+        st.download_button("Download $ Comparison", df.to_csv().encode("utf-8"), "dollar_comparison.csv", "text/csv")
+    else:
+        st.info("No dollar ($) values were detected in the uploaded PDFs.")
